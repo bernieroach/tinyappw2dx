@@ -39,8 +39,6 @@ app.get("/",(req,res) =>{
 
 app.get("/urls",(req,res)=>{
 // look for a cookie value
-  console.log("cookies urls");
-  console.log(req.cookies);
   let templateVars = {urls: urlDatabase,
                       username : req.cookies.username
                       };
@@ -48,7 +46,8 @@ app.get("/urls",(req,res)=>{
 });
 
 app.get("/urls/new",(req,res)=>{
-  res.render("urls_new");
+  let templateVars = { username : req.cookies.username }
+  res.render("urls_new", templateVars);
 });
 
  app.get("/urls.json",(req,res) =>{
@@ -57,7 +56,8 @@ app.get("/urls/new",(req,res)=>{
 
 app.get("/urls/:id", (req, res) => {
   let templateVars = { shortURL: req.params.id,
-                       urlDatabase : urlDatabase };
+                       urlDatabase : urlDatabase,
+                       username : req.cookies.username };
   res.render("urls_show", templateVars);
 });
 
@@ -67,6 +67,7 @@ app.get("/hello", (req,res) => {
 
 app.get("/u/:shortURL", (req, res) => {
   // let longURL = urlDatabase[shortURL]
+
   res.redirect(urlDatabase[req.params.shortURL]);
 });
 
@@ -76,7 +77,7 @@ app.post("/urls/:id/delete",(req,res) =>{
   console.log(urlDatabase);
   delete urlDatabase[req.params.id];
   console.log(urlDatabase);
-res.json(urlDatabase);
+res.redirect("/urls");
 //  res.send(`delete ${req.params.id}...`);
 });
 
@@ -86,7 +87,8 @@ app.post("/urls/:id/update",(req,res) =>{
   console.log(urlDatabase);
   urlDatabase[req.params.id] = `http://${req.body.bernielongURL}`;
   console.log(urlDatabase);
-res.json(urlDatabase);
+// go back to main
+res.redirect("/urls")
 //  res.send(`delete ${req.params.id}...`);
 });
 
@@ -98,7 +100,8 @@ app.post("/urls", (req, res) => {
 
   // short URL will be the key for the long URL
     urlDatabase[generateRandomString()] = `http://${req.body.longURL}`;
-    res.json(urlDatabase);
+    // go back to main
+    res.redirect("/urls");
 });
 
 app.post("/login", (req, res) => {
