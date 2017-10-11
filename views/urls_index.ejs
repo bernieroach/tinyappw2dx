@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>TinyApp</title>
+</head>
+<header>
+   <% include ./partials/_header %>
+</header>
+<body>
+  <table>
+        <ul>
+          <% for(id in urls) { %>
+          <tr>
+
+            <td><li><%= id %>: --></td>
+            <td><a href="<%= urls[id] %>"><%= urls[id] %> --></a></td>
+            <td><a href="/urls/<%= id %>"> Edit entry </a></td>
+              <!-- add a delete button for each short URL -->
+             <td><form method="POST" action="/urls/<%= id %>/delete">
+                <input type="submit" value="Delete">
+              </form></td>
+            </li>
+          </ts>
+          <% }; %>
+
+      </ul>
+  </table>
+    <!-- Add your EJS code here -->
+    <p>
+    <a href="/urls/new">Add a URL to tinfy!</a>
+  </p>
+</body>
+</html>
