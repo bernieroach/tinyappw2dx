@@ -2,6 +2,7 @@ let express = require('express');
 let app = express();
 let PORT = process.env.PORT || 8080;
 let bodyParser = require('body-parser');
+let cookieParser = require('cookie-parser');
 
 
 const generateRandomString = function(){
@@ -27,6 +28,7 @@ const urlDatabase = {
 
 
 app.use(bodyParser.urlencoded({extended: true}));
+app.use(cookieParser());
 
 app.set('view engine', 'ejs')
 
@@ -36,7 +38,12 @@ app.get("/",(req,res) =>{
 
 
 app.get("/urls",(req,res)=>{
-  let templateVars = {urls: urlDatabase};
+// look for a cookie value
+  console.log("cookies urls");
+  console.log(req.cookies);
+  let templateVars = {urls: urlDatabase,
+                      username : req.cookies.username
+                      };
   res.render("urls_index", templateVars);
 });
 
@@ -92,7 +99,15 @@ app.post("/urls", (req, res) => {
   // short URL will be the key for the long URL
     urlDatabase[generateRandomString()] = `http://${req.body.longURL}`;
     res.json(urlDatabase);
-//  res.send("Ok");         // Respond with 'Ok' (we will replace this)
+});
+
+app.post("/login", (req, res) => {
+
+  // login logic.
+  // update the cookie and then enter the index page
+  res.cookie('username', req.body.username);
+  res.redirect("/urls");
+
 });
 
 app.listen(PORT, () => {
