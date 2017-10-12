@@ -21,7 +21,7 @@ const generateRandomString = function(){
 }
 
 let getUserByEmail = function(email, userList){
-  // verify username is not already in the list of users
+  // verify  is not already in the list of users
   for (let id in userList){
     if(userList[id].email == email){
       return userList[id]
@@ -35,10 +35,10 @@ let userLogin = function(email, password, userList){
   const result = { OK : true,
                    status : 200,
                    messages : [] };
-  // verify username is not empty
+  // verify  is not empty
 
   if(!email){
-    result.messages.push("username cannot be blank");
+    result.messages.push(" cannot be blank");
     result.status = 400;
     result.OK = false;
   }
@@ -50,7 +50,7 @@ let userLogin = function(email, password, userList){
     result.OK = false;
   }
   if (result.OK){
-  // verify username is not already in the list of users
+  // verify  is not already in the list of users
     result.user = getUserByEmail(email, users);
     if (!result.user) {
       result.messages.push(`cannot find user for ${email}`);
@@ -71,10 +71,10 @@ const verifyRegEmailPassword = function(email, password, userList){
   const result = { OK : true,
                    status : 200,
                    messages : [] };
-  // verify username is not empty
+  // verify email is not empty
 
   if(!email){
-    result.messages.push("username cannot be blank");
+    result.messages.push("email/username cannot be blank");
     result.status = 400;
     result.OK = false;
   }
@@ -85,10 +85,10 @@ const verifyRegEmailPassword = function(email, password, userList){
     result.status = 400;
     result.OK = false;
   }
-  // verify username is not already in the list of users
+  // verify  is not already in the list of users
   for (let id in userList){
     if(userList[id].email == email){
-      result.messages.push(`username with email: ${email} - already registered`);
+      result.messages.push(` with email: ${email} - already registered`);
       result.status = 400;
       result.OK = false;
     }
@@ -253,7 +253,7 @@ app.post("/login", (req, res) => {
   // update the cookie and then enter the index page
   res.cookie('user_id', loginResult.user.id);
 
-  // username will be email.
+  //  will be email.
   res.redirect("/urls");
   } else {
 // return error
