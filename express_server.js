@@ -71,8 +71,8 @@ app.get("/u/:shortURL", (req, res) => {
   res.redirect(urlDatabase[req.params.shortURL]);
 });
 
-app.get("/registration",(req,res)=>{
-
+app.get("/register",(req,res)=>{
+  res.render("register");
 });
 
 // delete database entry of tiny url by id
@@ -89,7 +89,7 @@ res.redirect("/urls");
 app.post("/urls/:id/update",(req,res) =>{
   // this is where we delete the entry in the database
   console.log(urlDatabase);
-  urlDatabase[req.params.id] = `http://${req.body.bernielongURL}`;
+  urlDatabase[req.params.id] = `http://${req.body.longURL}`;
   console.log(urlDatabase);
 // go back to main
 res.redirect("/urls")
@@ -126,7 +126,9 @@ app.post("/logout", (req, res) => {
 
 });
 
-
+app.post("/register",(req,res)=>{
+  res.send("OK register POST event");
+})
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port: ${PORT}!`);

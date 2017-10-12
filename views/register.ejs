@@ -4,12 +4,18 @@
   <title>REGISTRATION</title>
 </head>
 <header>
-  <!--
-   <% include ./partials/_header %>
- -->
+
+  <% // commented include ./partials/_header %>
+
 </header>
 <body>
   <h2> THIS IS THE REGISTRATION PAGE </h2>
-  <
+  <form action="/register" method="POST">
+    <label for= "regemail">Registration email:</label>
+    <input id="regemail" type= "email" name= "email" placeholder= "enter email here please">
+    <label for= "password">Password:</label>
+    <input id="password" type= "password" name= "password" placeholder= "enter email here please">
+    <input type= "submit" value= "Register!">
+  </form>
 </body>
 </html>
