@@ -200,6 +200,15 @@ app.get("/login",(req,res)=>{
 
 });
 
+app.get("/logout", (req, res) => {
+
+  // login logic.
+  // update the cookie and then enter the index page
+res.clearCookie("user_id");
+
+  res.redirect("/login");
+
+});
 
 // delete database entry of tiny url by id
 app.post("/urls/:id/delete",(req,res) =>{
@@ -258,7 +267,7 @@ app.post("/logout", (req, res) => {
 
   // login logic.
   // update the cookie and then enter the index page
-
+res.clearCookie(user_id);
 
   res.redirect("/login");
 
