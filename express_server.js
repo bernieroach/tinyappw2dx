@@ -207,6 +207,9 @@ app.get("/login",(req,res)=>{
 // what to do if already logged in?
 
   templateVars = { user : users[req.cookies.user_id] }
+  if(!templateVars.user){
+    res.clearCookie("user_id");
+  }
   res.render("login", templateVars);
 
 });
