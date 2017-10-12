@@ -5,6 +5,16 @@ let bodyParser = require('body-parser');
 let cookieParser = require('cookie-parser');
 
 
+// global function declarations
+// try to modularize later when it is working.
+// idea is data stuff in data (get/delete/update etc)
+// idea is helper functions in a separate moduel (like generate random)
+// helper functions might be called via the db module
+//(not visible to the app maybe? it should not be called from the app directly in our example I think)
+// idea that the 'functional' functions - like logon, register can stay with the app as it is at app level
+// so if db changes or whatever, the app should not have to be changed much, unless we want the app to
+// acutally function differently
+
 const generateRandomString = function(){
   // list of valid characters the random sequence can be composed of a-z + A-Z + 0-9 order doesn't matter
   const aToZ = "qwertyuiopasdfghjklzxcvbnm";
@@ -54,12 +64,12 @@ let userLogin = function(email, password, userList){
     result.user = getUserByEmail(email, users);
     if (!result.user) {
       result.messages.push(`cannot find user for ${email}`);
-      result.status = 400;
+      result.status = 403;
       result.OK = false;
     } else {
       if(result.user.password !== password){
           result.messages.push(`incorrect password ${email}`);
-          result.status = 400;
+          result.status = 403;
           result.OK = false;
       }
     }
@@ -182,7 +192,8 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 app.get("/register",(req,res)=>{
-  res.render("register");
+  let templateVars = { user : users[req.cookies.user_id] }
+  res.render("register", templateVars);
 });
 
 app.get("/users",(req,res)=>{
@@ -288,7 +299,7 @@ app.post("/register",(req,res)=>{
                    }
   res.redirect("/urls");
   } else {
-    res.status(userVerifyResult.status).send(userVerifyResult.messages.toString());
+    res.status(userVerifyResult.status).send(userVerifyResult.messages);
   }
 })
 
