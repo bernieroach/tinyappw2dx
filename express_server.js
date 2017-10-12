@@ -22,7 +22,7 @@ const generateRandomString = function(){
 
 
 
-const verifyEmailPassword = function(email, password, userList){
+const verifyRegEmailPassword = function(email, password, userList){
   const result = { OK : true,
                    messages : [] };
   // verify username is not empty
@@ -46,6 +46,15 @@ const verifyEmailPassword = function(email, password, userList){
   }
 
  return result;
+}
+
+let getUserByID = function(userID, userList){
+  if(userList[userID]){
+    return userList[userID];
+  } else {
+    return {};
+  }
+
 }
 
 // Global data declarations:
@@ -91,13 +100,15 @@ app.get("/",(req,res) =>{
 app.get("/urls",(req,res)=>{
 // look for a cookie value
   let templateVars = {urls: urlDatabase,
-                      username : req.cookies.username
+                      username : req.cookies.username,
+                      user : users[req.cookies.user_id]
                       };
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new",(req,res)=>{
-  let templateVars = { username : req.cookies.username }
+  let templateVars = { username : req.cookies.username,
+                       user : req.cookies.user_id }
   res.render("urls_new", templateVars);
 });
 
@@ -108,7 +119,8 @@ app.get("/urls/new",(req,res)=>{
 app.get("/urls/:id", (req, res) => {
   let templateVars = { shortURL: req.params.id,
                        urlDatabase : urlDatabase,
-                       username : req.cookies.username };
+                       username : req.cookies.username,
+                       user : users[req.cookies.user_id] };
   res.render("urls_show", templateVars);
 });
 
@@ -131,12 +143,19 @@ app.get("/users",(req,res)=>{
   res.render("users", templateVars);
 });
 
+
+app.get("/login",(req,res)=>{
+  templateVars = { username : req.cookies.username }
+  res.render("login", templateVars);
+
+});
+
+
+
 // delete database entry of tiny url by id
 app.post("/urls/:id/delete",(req,res) =>{
   // this is where we delete the entry in the database
-  console.log(urlDatabase);
   delete urlDatabase[req.params.id];
-  console.log(urlDatabase);
 res.redirect("/urls");
 //  res.send(`delete ${req.params.id}...`);
 });
@@ -144,9 +163,7 @@ res.redirect("/urls");
 // delete database entry of tiny url by id
 app.post("/urls/:id/update",(req,res) =>{
   // this is where we delete the entry in the database
-  console.log(urlDatabase);
   urlDatabase[req.params.id] = `http://${req.body.longURL}`;
-  console.log(urlDatabase);
 // go back to main
 res.redirect("/urls")
 //  res.send(`delete ${req.params.id}...`);
@@ -169,6 +186,7 @@ app.post("/login", (req, res) => {
   // login logic.
   // update the cookie and then enter the index page
   res.cookie('username', req.body.username);
+  // username will be email.
   res.redirect("/urls");
 
 });
@@ -185,10 +203,10 @@ app.post("/logout", (req, res) => {
 app.post("/register",(req,res)=>{
   // register the user with email and password.
   let randID = generateRandomString();
-  let templateVars = { users : users };
+
   // error handling
 
-  let userVerifyResult = verifyEmailPassword(req.body.email, req.body.password, users);
+  let userVerifyResult = verifyRegEmailPassword(req.body.email, req.body.password, users);
   if (userVerifyResult.OK == true){
   users[randID] = { id : randID,
                     email : req.body.email,
@@ -199,7 +217,7 @@ app.post("/register",(req,res)=>{
   } else {
     res.status(400).send(userVerifyResult.messages.toString());
   }
-
+  //let templateVars = { users : users };
   // check for users list during test res.render("users",templateVars);
 })
 

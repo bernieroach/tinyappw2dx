@@ -1,0 +1,27 @@
+<h2> THIS IS THE LOGIN PAGE </h2>
+<% if(username){ %>
+<h5> Username: <%= username %> </h5>
+<form action="/logout" method="POST">
+  <input type="submit" value="Logout">
+</form>
+<!-- form for logout -->
+<% } else { %>
+  <form action="/login" method="POST">
+    <label for= "email">Login email:</label>
+    <input id="email" type= "email" name= "email" placeholder= "enter email here please">
+    <label for= "password">Password:</label>
+    <input id="password" type= "password" name= "password" placeholder= "enter email here please">
+    <input type= "submit" value= "Login!">
+  </form>
+  <% } %>
+
+ <!-- <h2> THIS IS THE LOGIN PAGE </h2>
+  <form action="/login" method="POST">
+    <label for= "email">Login email:</label>
+    <input id="email" type= "email" name= "email" placeholder= "enter email here please">
+    <label for= "password">Password:</label>
+    <input id="password" type= "password" name= "password" placeholder= "enter email here please">
+    <input type= "submit" value= "Login!">
+  </form>
+-->
+
