@@ -116,6 +116,8 @@ let getUserByID = function(userID, userList){
 
 }
 
+
+
 // Global data declarations:
 const urlDatabase = {
     "b2xVn2": "http://www.lighthouselabs.ca",
@@ -167,7 +169,13 @@ app.get("/urls",(req,res)=>{
 
 app.get("/urls/new",(req,res)=>{
   let templateVars = { user :    users[req.cookies.user_id] }
+  // if the user is registered and logged on then ok to create new URL
+  if(templateVars.user){
   res.render("urls_new", templateVars);
+  } else {
+  // redirect to login
+  res.render("login", templateVars);
+  }
 });
 
  app.get("/urls.json",(req,res) =>{
