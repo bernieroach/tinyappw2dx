@@ -20,11 +20,34 @@ const generateRandomString = function(){
   return(randomString);
 }
 
-
+// Global data declarations:
 const urlDatabase = {
     "b2xVn2": "http://www.lighthouselabs.ca",
     "9sm5xK": "http://www.google.com"
 };
+
+const users = {
+  "userRandomID": {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur"
+  },
+ "user2RandomID": {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk"
+  },
+  "richardthaler": {
+    id: "richardthaler",
+    email: "rthaler@example.com",
+    password: "econhavenosould"
+  },
+  "charlierose": {
+    id: "charlierose",
+    email: "charlierose@example.com",
+    password: "conversation"
+  }
+}
 
 
 app.use(bodyParser.urlencoded({extended: true}));
@@ -33,7 +56,7 @@ app.use(cookieParser());
 app.set('view engine', 'ejs')
 
 app.get("/",(req,res) =>{
-  res.end("Hi!");
+  res.render(register);
 });
 
 
@@ -127,7 +150,14 @@ app.post("/logout", (req, res) => {
 });
 
 app.post("/register",(req,res)=>{
-  res.send("OK register POST event");
+  // register the user with email and password.
+  let randID = generateRandomString();
+  let templateVars = { users : users };
+  users[randID] = { email : req.body.email,
+                    password : req.body.password
+                   }
+
+  res.render("users",templateVars);
 })
 
 app.listen(PORT, () => {

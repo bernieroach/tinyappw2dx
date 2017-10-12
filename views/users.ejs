@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>TinyApp</title>
+</head>
+<header>
+   < // % include ./partials/_header %>
+</header>
+<body>
+  <table>
+        <ul>
+          <% for(id in users) { %>
+          <tr>
+
+            <td><li><%= id %>: %>
+            <td><%= users[id].email %></td>
+            <td><%= users[id].password %></td>
+
+            </li> </td>
+          </tr>
+          <% }; %>
+
+      </ul>
+  </table>
+    <!-- Add your EJS code here -->
+    <p>
+    <a href="/register">Register another user!</a>
+  </p>
+</body>
+</html>
