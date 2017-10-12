@@ -119,10 +119,12 @@ let getUserByID = function(userID, userList){
 
 
 // Global data declarations:
-const urlDatabase = {
-    "b2xVn2": "http://www.lighthouselabs.ca",
-    "9sm5xK": "http://www.google.com"
-};
+const urlDatabase = { "charlierose" :
+                      {
+                      "b2xVn2": "http://www.lighthouselabs.ca",
+                      "9sm5xK": "http://www.google.com"
+                      }
+                    };
 
 const users = {
   "userRandomID": {
@@ -161,7 +163,7 @@ app.get("/",(req,res) =>{
 
 app.get("/urls",(req,res)=>{
 // look for a cookie value
-  let templateVars = {urls: urlDatabase,
+  let templateVars = {urls: urlDatabase[req.cookies.user_id],
                       user :    users[req.cookies.user_id]
                       };
   res.render("urls_index", templateVars);
@@ -184,7 +186,7 @@ app.get("/urls/new",(req,res)=>{
 
 app.get("/urls/:id", (req, res) => {
   let templateVars = { shortURL: req.params.id,
-                       urlDatabase : urlDatabase,
+                       urlDatabase : urlDatabase[req.cookies.user_id],
                        user : users[req.cookies.user_id] };
   res.render("urls_show", templateVars);
 });
@@ -196,7 +198,7 @@ app.get("/hello", (req,res) => {
 app.get("/u/:shortURL", (req, res) => {
   // let longURL = urlDatabase[shortURL]
 
-  res.redirect(urlDatabase[req.params.shortURL]);
+  res.redirect(urlDatabase[req.cookies.user_id][req.params.shortURL]);
 });
 
 app.get("/register",(req,res)=>{
@@ -235,7 +237,7 @@ res.clearCookie("user_id");
 // delete database entry of tiny url by id
 app.post("/urls/:id/delete",(req,res) =>{
   // this is where we delete the entry in the database
-  delete urlDatabase[req.params.id];
+  delete urlDatabase[req.cookies.user_id][req.params.id];
 res.redirect("/urls");
 //  res.send(`delete ${req.params.id}...`);
 });
@@ -243,7 +245,7 @@ res.redirect("/urls");
 // delete database entry of tiny url by id
 app.post("/urls/:id/update",(req,res) =>{
   // this is where we delete the entry in the database
-  urlDatabase[req.params.id] = `http://${req.body.longURL}`;
+  urlDatabase[req.cookies.user_id][req.params.id] = `http://${req.body.longURL}`;
 // go back to main
 res.redirect("/urls")
 //  res.send(`delete ${req.params.id}...`);
@@ -253,10 +255,12 @@ app.post("/urls", (req, res) => {
 
   // console.log(req.body);  // debug statement to see POST parameters
  // generate a short URL
-//  const shortURL = generateRandomString();
-
+   const shortURL = generateRandomString();
+console.log(urlDatabase);
+console.log(req.cookies.user_id);
   // short URL will be the key for the long URL
-    urlDatabase[generateRandomString()] = `http://${req.body.longURL}`;
+    urlDatabase[req.cookies.user_id][shortURL]
+    = `http://${req.body.longURL}`;
     // go back to main
     res.redirect("/urls");
 });
@@ -308,6 +312,7 @@ app.post("/register",(req,res)=>{
                     email : req.body.email,
                     password : req.body.password
                    }
+  urlDatabase[randID] = {};
   res.redirect("/urls");
   } else {
     res.status(userVerifyResult.status).send(userVerifyResult.messages);
