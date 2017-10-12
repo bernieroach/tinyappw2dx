@@ -20,27 +20,76 @@ const generateRandomString = function(){
   return(randomString);
 }
 
+let getUserByEmail = function(email, userList){
+  // verify username is not already in the list of users
+  for (let id in userList){
+    if(userList[id].email == email){
+      return userList[id]
+    }
+  }
+}
 
 
-const verifyRegEmailPassword = function(email, password, userList){
+let userLogin = function(email, password, userList){
+
   const result = { OK : true,
+                   status : 200,
                    messages : [] };
   // verify username is not empty
 
   if(!email){
-    result.messages.push("username cannot be blank")
+    result.messages.push("username cannot be blank");
+    result.status = 400;
     result.OK = false;
   }
     // verify password is not empty
 
   if(!password){
     result.messages.push("password cannot be blank");
+    result.status = 400;
+    result.OK = false;
+  }
+  if (result.OK){
+  // verify username is not already in the list of users
+    result.user = getUserByEmail(email, users);
+    if (!result.user) {
+      result.messages.push(`cannot find user for ${email}`);
+      result.status = 400;
+      result.OK = false;
+    } else {
+      if(result.user.password !== password){
+          result.messages.push(`incorrect password ${email}`);
+          result.status = 400;
+          result.OK = false;
+      }
+    }
+  }
+  return result;
+}
+
+const verifyRegEmailPassword = function(email, password, userList){
+  const result = { OK : true,
+                   status : 200,
+                   messages : [] };
+  // verify username is not empty
+
+  if(!email){
+    result.messages.push("username cannot be blank");
+    result.status = 400;
+    result.OK = false;
+  }
+    // verify password is not empty
+
+  if(!password){
+    result.messages.push("password cannot be blank");
+    result.status = 400;
     result.OK = false;
   }
   // verify username is not already in the list of users
   for (let id in userList){
     if(userList[id].email == email){
       result.messages.push(`username with email: ${email} - already registered`);
+      result.status = 400;
       result.OK = false;
     }
   }
@@ -93,22 +142,21 @@ app.use(cookieParser());
 app.set('view engine', 'ejs')
 
 app.get("/",(req,res) =>{
-  res.render("register");
+  templateVars = { user : users[req.cookies.user_id] }
+  res.render("login",templateVars);
 });
 
 
 app.get("/urls",(req,res)=>{
 // look for a cookie value
   let templateVars = {urls: urlDatabase,
-                      username : req.cookies.username,
-                      user : users[req.cookies.user_id]
+                      user :    users[req.cookies.user_id]
                       };
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new",(req,res)=>{
-  let templateVars = { username : req.cookies.username,
-                       user : req.cookies.user_id }
+  let templateVars = { user :    users[req.cookies.user_id] }
   res.render("urls_new", templateVars);
 });
 
@@ -119,7 +167,6 @@ app.get("/urls/new",(req,res)=>{
 app.get("/urls/:id", (req, res) => {
   let templateVars = { shortURL: req.params.id,
                        urlDatabase : urlDatabase,
-                       username : req.cookies.username,
                        user : users[req.cookies.user_id] };
   res.render("urls_show", templateVars);
 });
@@ -139,17 +186,19 @@ app.get("/register",(req,res)=>{
 });
 
 app.get("/users",(req,res)=>{
-  let templateVars = { users : users };
+  let templateVars = { users : users,
+                       user : users[req.cookies.user_id] };
   res.render("users", templateVars);
 });
 
 
 app.get("/login",(req,res)=>{
-  templateVars = { username : req.cookies.username }
+// what to do if already logged in?
+
+  templateVars = { user : users[req.cookies.user_id] }
   res.render("login", templateVars);
 
 });
-
 
 
 // delete database entry of tiny url by id
@@ -184,10 +233,24 @@ app.post("/urls", (req, res) => {
 app.post("/login", (req, res) => {
 
   // login logic.
+  // verifythe login
+  // check for user with email address
+  // check the password is correct
+  let loginResult = userLogin(req.body.email, req.body.password, users);
+
+  if (loginResult.OK == true){
+// OK
+
   // update the cookie and then enter the index page
-  res.cookie('username', req.body.username);
+  res.cookie('user_id', loginResult.user.id);
+
   // username will be email.
   res.redirect("/urls");
+  } else {
+// return error
+   res.status(loginResult.status).send(loginResult.messages)
+  }
+
 
 });
 
@@ -195,33 +258,34 @@ app.post("/logout", (req, res) => {
 
   // login logic.
   // update the cookie and then enter the index page
-  res.clearCookie('username');
-  res.redirect("/urls");
+
+
+  res.redirect("/login");
 
 });
 
 app.post("/register",(req,res)=>{
   // register the user with email and password.
-  let randID = generateRandomString();
+
 
   // error handling
 
   let userVerifyResult = verifyRegEmailPassword(req.body.email, req.body.password, users);
   if (userVerifyResult.OK == true){
+  let randID = generateRandomString();
   users[randID] = { id : randID,
                     email : req.body.email,
                     password : req.body.password
                    }
-  res.cookie('user_id', randID);
   res.redirect("/urls");
   } else {
-    res.status(400).send(userVerifyResult.messages.toString());
+    res.status(userVerifyResult.status).send(userVerifyResult.messages.toString());
   }
-  //let templateVars = { users : users };
-  // check for users list during test res.render("users",templateVars);
 })
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port: ${PORT}!`);
 });
+
+
 

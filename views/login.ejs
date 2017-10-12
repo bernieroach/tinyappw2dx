@@ -1,6 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>TinyApp</title>
+</head>
+<header>
+   <% include ./partials/_header %>
+</header>
+<body>
 <h2> THIS IS THE LOGIN PAGE </h2>
-<% if(username){ %>
-<h5> Username: <%= username %> </h5>
+<% if(user){ %>
 <form action="/logout" method="POST">
   <input type="submit" value="Logout">
 </form>
@@ -14,6 +22,8 @@
     <input type= "submit" value= "Login!">
   </form>
   <% } %>
+ </body>
+</html>
 
  <!-- <h2> THIS IS THE LOGIN PAGE </h2>
   <form action="/login" method="POST">
