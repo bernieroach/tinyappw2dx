@@ -71,6 +71,10 @@ app.get("/u/:shortURL", (req, res) => {
   res.redirect(urlDatabase[req.params.shortURL]);
 });
 
+app.get("/registration",(req,res)=>{
+
+});
+
 // delete database entry of tiny url by id
 app.post("/urls/:id/delete",(req,res) =>{
   // this is where we delete the entry in the database
@@ -121,6 +125,8 @@ app.post("/logout", (req, res) => {
   res.redirect("/urls");
 
 });
+
+
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port: ${PORT}!`);
