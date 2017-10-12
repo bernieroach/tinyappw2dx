@@ -30,6 +30,21 @@ const generateRandomString = function(){
   return(randomString);
 }
 
+let getLongURLfromShort = function(shortURL, userList){
+  for (let userID in userList){
+
+// loop through all the registerd users
+// let longURL = urlDatabase[shortURL]
+// hash the user db tiny
+  if (urlDatabase[userID] && urlDatabase[userID][shortURL]) {
+     return urlDatabase[userID][shortURL];
+  }
+
+ }
+ // at this point the URL is not found, return the shortURL
+ return shortURL;
+}
+
 let getUserByEmail = function(email, userList){
   // verify  is not already in the list of users
   for (let id in userList){
@@ -196,9 +211,14 @@ app.get("/hello", (req,res) => {
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  // let longURL = urlDatabase[shortURL]
 
-  res.redirect(urlDatabase[req.cookies.user_id][req.params.shortURL]);
+
+  res.redirect(getLongURLfromShort(req.params.shortURL,users));
+// loop through all the registerd users
+// hash the user db tiny
+ // let longURL = urlDatabase[shortURL]
+
+//  res.redirect(urlDatabase[req.cookies.user_id][req.params.shortURL]);
 });
 
 app.get("/register",(req,res)=>{
@@ -259,8 +279,7 @@ app.post("/urls", (req, res) => {
 console.log(urlDatabase);
 console.log(req.cookies.user_id);
   // short URL will be the key for the long URL
-    urlDatabase[req.cookies.user_id][shortURL]
-    = `http://${req.body.longURL}`;
+    urlDatabase[req.cookies.user_id][shortURL]= `http://${req.body.longURL}`;
     // go back to main
     res.redirect("/urls");
 });
