@@ -56,7 +56,7 @@ app.use(cookieParser());
 app.set('view engine', 'ejs')
 
 app.get("/",(req,res) =>{
-  res.render(register);
+  res.render("register");
 });
 
 
@@ -156,8 +156,10 @@ app.post("/register",(req,res)=>{
   users[randID] = { email : req.body.email,
                     password : req.body.password
                    }
+  res.cookie('user_id', randID);
+  res.redirect("/urls");
 
-  res.render("users",templateVars);
+  // check for users list during test res.render("users",templateVars);
 })
 
 app.listen(PORT, () => {
