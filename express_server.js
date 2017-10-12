@@ -3,6 +3,9 @@ let app = express();
 let PORT = process.env.PORT || 8080;
 let bodyParser = require('body-parser');
 let cookieParser = require('cookie-parser');
+let bcrypt = require('bcrypt');
+const saltRounds = 10;
+var salt = bcrypt.genSaltSync(saltRounds);
 
 
 // global function declarations
@@ -77,16 +80,19 @@ let userLogin = function(email, password, userList){
   if (result.OK){
   // verify  is not already in the list of users
     result.user = getUserByEmail(email, users);
+
     if (!result.user) {
       result.messages.push(`cannot find user for ${email}`);
       result.status = 403;
       result.OK = false;
     } else {
-      if(result.user.password !== password){
-          result.messages.push(`incorrect password ${email}`);
-          result.status = 403;
-          result.OK = false;
-      }
+        if(!bcrypt.compareSync( password, result.user.password)) {
+
+            result.messages.push(`incorrect password ${email}`);
+            result.status = 403;
+            result.OK = false;
+
+        }
     }
   }
   return result;
@@ -145,22 +151,22 @@ const users = {
   "userRandomID": {
     id: "userRandomID",
     email: "user@example.com",
-    password: "purple-monkey-dinosaur"
+    password: bcrypt.hashSync("purple-monkey-dinosaur", saltRounds)
   },
  "user2RandomID": {
     id: "user2RandomID",
     email: "user2@example.com",
-    password: "dishwasher-funk"
+    password: bcrypt.hashSync("dishwasher-funk", saltRounds)
   },
   "richardthaler": {
     id: "richardthaler",
     email: "rthaler@example.com",
-    password: "econhavenosould"
+    password: bcrypt.hashSync("econhavenosould", saltRounds)
   },
   "charlierose": {
     id: "charlierose",
     email: "charlierose@example.com",
-    password: "conversation"
+    password: bcrypt.hashSync("conversation", saltRounds) //"conversation"
   }
 }
 
@@ -276,8 +282,7 @@ app.post("/urls", (req, res) => {
   // console.log(req.body);  // debug statement to see POST parameters
  // generate a short URL
    const shortURL = generateRandomString();
-console.log(urlDatabase);
-console.log(req.cookies.user_id);
+
   // short URL will be the key for the long URL
     urlDatabase[req.cookies.user_id][shortURL]= `http://${req.body.longURL}`;
     // go back to main
@@ -285,7 +290,6 @@ console.log(req.cookies.user_id);
 });
 
 app.post("/login", (req, res) => {
-
   // login logic.
   // verifythe login
   // check for user with email address
@@ -323,14 +327,19 @@ app.post("/register",(req,res)=>{
 
 
   // error handling
+// hash the password
+
 
   let userVerifyResult = verifyRegEmailPassword(req.body.email, req.body.password, users);
   if (userVerifyResult.OK == true){
+
+
   let randID = generateRandomString();
   users[randID] = { id : randID,
                     email : req.body.email,
-                    password : req.body.password
+                    password : bcrypt.hashSync(req.body.password, saltRounds)
                    }
+
   urlDatabase[randID] = {};
   res.redirect("/urls");
   } else {
