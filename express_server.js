@@ -20,6 +20,34 @@ const generateRandomString = function(){
   return(randomString);
 }
 
+
+
+const verifyEmailPassword = function(email, password, userList){
+  const result = { OK : true,
+                   messages : [] };
+  // verify username is not empty
+
+  if(!email){
+    result.messages.push("username cannot be blank")
+    result.OK = false;
+  }
+    // verify password is not empty
+
+  if(!password){
+    result.messages.push("password cannot be blank");
+    result.OK = false;
+  }
+  // verify username is not already in the list of users
+  for (let id in userList){
+    if(userList[id].email == email){
+      result.messages.push(`username with email: ${email} - already registered`);
+      result.OK = false;
+    }
+  }
+
+ return result;
+}
+
 // Global data declarations:
 const urlDatabase = {
     "b2xVn2": "http://www.lighthouselabs.ca",
@@ -98,6 +126,11 @@ app.get("/register",(req,res)=>{
   res.render("register");
 });
 
+app.get("/users",(req,res)=>{
+  let templateVars = { users : users };
+  res.render("users", templateVars);
+});
+
 // delete database entry of tiny url by id
 app.post("/urls/:id/delete",(req,res) =>{
   // this is where we delete the entry in the database
@@ -153,11 +186,19 @@ app.post("/register",(req,res)=>{
   // register the user with email and password.
   let randID = generateRandomString();
   let templateVars = { users : users };
-  users[randID] = { email : req.body.email,
+  // error handling
+
+  let userVerifyResult = verifyEmailPassword(req.body.email, req.body.password, users);
+  if (userVerifyResult.OK == true){
+  users[randID] = { id : randID,
+                    email : req.body.email,
                     password : req.body.password
                    }
   res.cookie('user_id', randID);
   res.redirect("/urls");
+  } else {
+    res.status(400).send(userVerifyResult.messages.toString());
+  }
 
   // check for users list during test res.render("users",templateVars);
 })
