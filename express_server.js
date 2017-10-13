@@ -56,7 +56,7 @@
 
 
 ///////// require statements //////////
-
+let methodOverride = require('method-override');
 let express = require('express');
 let app = express();
 let PORT = process.env.PORT || 8080;
@@ -64,6 +64,9 @@ let bodyParser = require('body-parser');
 let cookieParser = require('cookie-parser');
 let cookieSession = require('cookie-session');
 let bcrypt = require('bcrypt');
+
+
+
 
 //////// function declarations ///////////
 
@@ -230,12 +233,14 @@ const users = {
 //////// express server level functions ///////////
 ////// set up the server middleware, view engine //////
 
+// override with POST having ?_method=DELETE
+app.use(methodOverride('_bernieOverride'));
+
 app.use(bodyParser.urlencoded({extended: true}));
 
 app.use(cookieSession({name : 'session',
                        keys : [digest]}));
 app.set('view engine', 'ejs')
-
 
 ///////// GET behaviors  /////////
 
@@ -268,7 +273,6 @@ app.get("/urls",(req,res)=>{
     res.render("urls_index", templateVars);
   }
 });
-
 
 
 // GET behavior for specific url for specific user
@@ -336,7 +340,7 @@ app.get("/login",(req,res)=>{
 //////// POST behaviors ////////
 
 // delete database entry of tiny url by id
-app.post("/urls/:id/delete",(req,res) =>{
+app.delete("/urls/:id/delete",(req,res) =>{
   let templateVars = { user : users[req.session.user_id] };
   // if not logged on
  if(!req.session.user_id){
@@ -352,6 +356,7 @@ app.post("/urls/:id/delete",(req,res) =>{
     res.redirect("/urls");
   }
 });
+
 
 // UPDATE database entry of tiny url by id
 app.post("/urls/:id",(req,res) =>{
