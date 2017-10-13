@@ -1,9 +1,13 @@
 
-<a href="/register">REGISTER</a>
+
 <% if(!user) { %>
+<a href="/register">REGISTER</a>
 <a href="/login">LOGIN</a>
 <% } else {  %>
 <H1> User: <%=user.email%> logged on </H1>
-<a href="/logout">LOGOUT</a>
+<!-- <a href="/logout">LOGOUT</a> turn this in to a form POST logout -->
+  <form method="POST" action="/logout">
+    <input type="submit" value="LOGOUT">
+  </form>
 <% } %>
 

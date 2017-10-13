@@ -1,3 +1,58 @@
+// tinyURL app for LHL week 2
+// Oct 10, 2017 Montreal QC
+// Bernard Roach
+//
+// Global data declarations:
+// put this in a module with
+// getUserByID
+// verifyRegEmailPassword
+// getUSerByEmail
+// getLongURLfromShort
+
+// more app functions are:
+// userLogin
+// userLogOut (not written)
+// userRegister (not written)
+// userUpdate (not written)
+// userDelete (not written)
+
+
+// global function declarations
+// try to modularize later when it is working.
+// idea is data stuff in data (get/delete/update etc)
+// idea is helper functions in a separate moduel (like generate random)
+// helper functions might be called via the db module
+//(not visible to the app maybe? it should not be called from the app directly in our example I think)
+// idea that the 'functional' functions - like logon, register can stay with the app as it is at app level
+// so if db changes or whatever, the app should not have to be changed much, unless we want the app to
+// acutally function differently
+
+
+// multi language texts object?
+// // language selection (possible cookie to store)
+// try if time
+//  appTexts = { userBlank : {
+//                             { lang : "EN",
+//                               text : "cannot leave user name blank"\
+//                             },
+//                             { lang : "FR",
+//                               text : "veuillez entrer un nom utilisateur"
+//                             }
+//               },
+//               passwordBlank : {
+//                             { lang : "EN",
+//                               text : "cannot leave password blank"\
+//                             },
+//                             { lang : "FR",
+//                               text : "veuillez entrer un mot de passe"
+//                             }
+
+//               }
+//             }
+
+
+// require statements
+
 let express = require('express');
 let app = express();
 let PORT = process.env.PORT || 8080;
@@ -11,15 +66,6 @@ const salt = bcrypt.genSaltSync(saltRounds);
 
 
 
-// global function declarations
-// try to modularize later when it is working.
-// idea is data stuff in data (get/delete/update etc)
-// idea is helper functions in a separate moduel (like generate random)
-// helper functions might be called via the db module
-//(not visible to the app maybe? it should not be called from the app directly in our example I think)
-// idea that the 'functional' functions - like logon, register can stay with the app as it is at app level
-// so if db changes or whatever, the app should not have to be changed much, unless we want the app to
-// acutally function differently
 
 const generateRandomString = function(){
   // list of valid characters the random sequence can be composed of a-z + A-Z + 0-9 order doesn't matter
@@ -48,7 +94,7 @@ let getLongURLfromShort = function(shortURL, userList){
 
  }
  // at this point the URL is not found, return the shortURL
- return shortURL;
+ return "";
 }
 
 let getUserByEmail = function(email, userList){
@@ -141,7 +187,7 @@ let getUserByID = function(userID, userList){
 }
 
 
-
+//
 // Global data declarations:
 
 const digest = generateRandomString();
@@ -171,73 +217,98 @@ const users = {
   "charlierose": {
     id: "charlierose",
     email: "charlierose@example.com",
-    password: bcrypt.hashSync("conversation", saltRounds) //"conversation"
+    password: bcrypt.hashSync("conversation", saltRounds)
   }
 }
 
 
 app.use(bodyParser.urlencoded({extended: true}));
-//app.use(cookieParser());
+
 app.use(cookieSession({name : 'session',
                        keys : [digest]}));
 app.set('view engine', 'ejs')
 
 app.get("/",(req,res) =>{
+
   templateVars = { user : users[req.session.user_id] }
-  res.render("login",templateVars);
+  if(!req.session.user_id){
+    res.render("login",templateVars);
+  } else {
+    templateVars.urls = urlDatabase[req.session.user_id];
+    res.redirect("/urls");
+  }
 });
 
 
 app.get("/urls",(req,res)=>{
-// look for a cookie value
-  let templateVars = {urls: urlDatabase[req.session.user_id],
+
+  let templateVars = {
                       user :    users[req.session.user_id]
                       };
-  res.render("urls_index", templateVars);
-});
-
-app.get("/urls/new",(req,res)=>{
-  let templateVars = { user :    users[req.session.user_id] }
-  // if the user is registered and logged on then ok to create new URL
-  if(templateVars.user){
-  res.render("urls_new", templateVars);
+  if(!req.session.user_id){
+    templateVars.errMessages = "**You are not logged in. Please log in**";
+    res.render("error_message",templateVars);
   } else {
-  // redirect to login
-  res.render("login", templateVars);
+    templateVars.urls = urlDatabase[req.session.user_id];
+    res.render("urls_index", templateVars);
   }
 });
 
- app.get("/urls.json",(req,res) =>{
-   res.json(urlDatabase);
- });
+app.get("/urls/new",(req,res)=>{
+
+  let templateVars = { user :    users[req.session.user_id] }
+
+  if(req.session.user_id){
+    res.render("urls_new", templateVars);
+  } else {
+
+    res.redirect("/login");
+  }
+});
 
 app.get("/urls/:id", (req, res) => {
   let templateVars = { shortURL: req.params.id,
                        urlDatabase : urlDatabase[req.session.user_id],
                        user : users[req.session.user_id] };
-  res.render("urls_show", templateVars);
-});
 
-app.get("/hello", (req,res) => {
-  res.end("<html><body>Hello</body><html>\n");
+ if(!req.session.user_id){
+    templateVars.errMessages = "**You are not logged in. Please log in**";
+    res.render("error_message",templateVars);
+    } else if(urlDatabase[req.session.user_id][req.params.id]){
+
+  res.render("urls_show", templateVars);
+  } else {
+    // if user is not logged in:
+    templateVars.errMessages = `**You are not the owner of tinyURL ${req.params.id}. **`;
+    res.render("error_message",templateVars);
+  }
 });
 
 app.get("/u/:shortURL", (req, res) => {
 
-
-  res.redirect(getLongURLfromShort(req.params.shortURL,users));
-// loop through all the registerd users
-// hash the user db tiny
- // let longURL = urlDatabase[shortURL]
-
-//  res.redirect(urlDatabase[req.session.user_id][req.params.shortURL]);
+  const longURL = getLongURLfromShort(req.params.shortURL,users);
+  let templateVars = { user : users[req.session.user_id] }
+  if(longURL){
+    res.redirect(longURL);
+  } else {
+    templateVars.errMessages = `**No Entry found for ${req.params.shortURL} . **`;
+    res.render("error_message",templateVars);
+    // not found
+  }
 });
 
 app.get("/register",(req,res)=>{
+// need this or header explodes
   let templateVars = { user : users[req.session.user_id] }
-  res.render("register", templateVars);
+
+  if(req.session.user_id){
+    res.redirect("/urls");
+  } else {
+    res.render("register", templateVars);
+  }
 });
 
+// test to be removed
 app.get("/users",(req,res)=>{
   let templateVars = { users : users,
                        user : users[req.session.user_id] };
@@ -249,10 +320,12 @@ app.get("/login",(req,res)=>{
 // what to do if already logged in?
 
   templateVars = { user : users[req.session.user_id] }
-  if(!templateVars.user){
+  if(!req.session.user_id){
     res.clearCookie("user_id");
+    res.render("login", templateVars);
+  } else {
+    res.redirect("/urls");
   }
-  res.render("login", templateVars);
 
 });
 
@@ -260,8 +333,7 @@ app.get("/logout", (req, res) => {
 
   // login logic.
   // update the cookie and then enter the index page
-res.clearCookie("user_id");
-
+req.session.user_id = "";
   res.redirect("/login");
 
 });
@@ -324,6 +396,7 @@ app.post("/logout", (req, res) => {
   // update the cookie and then enter the index page
 req.session.user_id = "";
 
+//  console.log("logout after", res.session.user_id);
   res.redirect("/login");
 
 });
@@ -347,7 +420,7 @@ app.post("/register",(req,res)=>{
                    }
 
   urlDatabase[randID] = {};
-  res.redirect("/urls");
+  res.redirect("/login");
   } else {
     res.status(userVerifyResult.status).send(userVerifyResult.messages);
   }
