@@ -3,18 +3,21 @@
 // Bernard Roach
 //
 // Global data declarations:
-// put this in a module with
+// put this in a module with tiny url db
 // getUserByID
 // verifyRegEmailPassword
 // getUSerByEmail
 // getLongURLfromShort
+// userRegister (not written)
+// userUpdate/Create (not written)
+// userDelete (not written)
+// urlUPDATE/CREATE (not written)
+// urlDelete (not written)
 
 // more app functions are:
 // userLogin
 // userLogOut (not written)
-// userRegister (not written)
-// userUpdate (not written)
-// userDelete (not written)
+
 
 
 // global function declarations
@@ -26,6 +29,7 @@
 // idea that the 'functional' functions - like logon, register can stay with the app as it is at app level
 // so if db changes or whatever, the app should not have to be changed much, unless we want the app to
 // acutally function differently
+
 
 
 // multi language texts object?
@@ -224,6 +228,7 @@ const users = {
 
 
 //////// express server level functions ///////////
+////// set up the server middleware, view engine //////
 
 app.use(bodyParser.urlencoded({extended: true}));
 
@@ -231,6 +236,8 @@ app.use(cookieSession({name : 'session',
                        keys : [digest]}));
 app.set('view engine', 'ejs')
 
+
+///////// GET behaviors  /////////
 
 // root behavior for GET
 app.get("/",(req,res) =>{
@@ -262,18 +269,7 @@ app.get("/urls",(req,res)=>{
   }
 });
 
-// this no longer is used remove when sure
-// app.get("/urls/new",(req,res)=>{
 
-//   let templateVars = { user :    users[req.session.user_id] }
-
-//   if(req.session.user_id){
-//     res.render("urls_new", templateVars);
-//   } else {
-
-//     res.redirect("/login");
-//   }
-// });
 
 // GET behavior for specific url for specific user
 app.get("/urls/:id", (req, res) => {
@@ -337,13 +333,16 @@ app.get("/login",(req,res)=>{
   }
 });
 
+//////// POST behaviors ////////
 
 // delete database entry of tiny url by id
 app.post("/urls/:id/delete",(req,res) =>{
   let templateVars = { user : users[req.session.user_id] };
+  // if not logged on
  if(!req.session.user_id){
     templateVars.errMessages = "**You are not logged in. Please log in**";
     res.render("error_message",templateVars);
+  // if user does not have control of url
   } else if (!urlDatabase[req.session.user_id][req.params.id]){
     templateVars.errMessages = `**You do not own tinyURL ${req.params.id} ACTION CANCELLED **`;
     res.render("error_message",templateVars);
@@ -357,88 +356,93 @@ app.post("/urls/:id/delete",(req,res) =>{
 // UPDATE database entry of tiny url by id
 app.post("/urls/:id",(req,res) =>{
   let templateVars = { user : users[req.session.user_id] };
-
+// not logged on
  if(!req.session.user_id){
     templateVars.errMessages = "**You are not logged in. Please log in**";
     res.render("error_message",templateVars);
+  // user does not have control of the url
   } else if (!urlDatabase[req.session.user_id][req.params.id]){
     templateVars.errMessages = `**You do not own tinyURL ${req.params.id} ACTION CANCELLED **`;
     res.render("error_message",templateVars);
   } else {
+  // update the long URL and got ot the list of urls for the user
     urlDatabase[req.session.user_id][req.params.id] = `http://${req.body.longURL}`;
     res.redirect("/urls")
   }
 });
 
+// formerly /urls/new but not to spec
+// create new tiny url entry
 app.post("/urls", (req, res) => {
   let templateVars = { shortURL: req.params.id,
                        urlDatabase : urlDatabase[req.session.user_id],
                        user : users[req.session.user_id] };
-
+// not logged on
  if(!req.session.user_id){
     templateVars.errMessages = "**You are not logged in. Please log in**";
     res.render("error_message",templateVars);
   } else {
-  // console.log(req.body);  // debug statement to see POST parameters
  // generate a short URL
    const shortURL = generateRandomString();
-
-  // short URL will be the key for the long URL
-  //  urlDatabase[req.session.user_id][shortURL]= `http://${req.body.longURL}`;
+// default tiny to point to itself
    urlDatabase[req.session.user_id][shortURL]= shortURL;
-    // go tiny url page
+    // go tiny url page to update longURL
     res.redirect(`/urls/${shortURL}`);
   }
 
 });
 
+// POST behavior for login
 app.post("/login", (req, res) => {
 
+// check if the login was with valid data
   let loginResult = userLogin(req.body.email, req.body.password, users);
 
   if (loginResult.OK == true){
 // OK
   req.session.user_id = loginResult.user.id;
-
+// show urls for user
   res.redirect("/urls");
   } else {
 // return error
    res.status(loginResult.status).send(loginResult.messages)
   }
-
-
 });
 
+// POST behavior for logout
 app.post("/logout", (req, res) => {
-
+// clear cookie and leave
   req.session.user_id = "";
 // this commented out part is the spec, but I don't like it.
 //  res.redirect("/urls");
   res.redirect("/login");
 });
 
+//POST behavior for
 app.post("/register",(req,res)=>{
   // register the user with email and password.
-
+  // check the registration inputs
   let userVerifyResult = verifyRegEmailPassword(req.body.email, req.body.password, users);
   if (userVerifyResult.OK == true){
-
-
   let randID = generateRandomString();
+  // create user record
   users[randID] = { id : randID,
                     email : req.body.email,
                     password : bcrypt.hashSync(req.body.password, saltRounds)
                    }
-
+// url database for user init to empty (but not undefined)
   urlDatabase[randID] = {};
   req.session.user_id = randID;
-
+// show the urls for the user
   res.redirect("/urls");
   } else {
+    // there was a data validity issue during registration
     res.status(userVerifyResult.status).send(userVerifyResult.messages);
   }
 })
 
+// express server behavior now defined.
+// run the express server
 app.listen(PORT, () => {
   console.log(`Example app listening on port: ${PORT}!`);
 });
