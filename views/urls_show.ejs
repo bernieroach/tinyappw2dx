@@ -8,11 +8,11 @@
 </header>
 <body>
         <h2>
-              <%= urlDatabase[shortURL] %>
+              <%= urlDatabase[shortURL].longURL %>
       </h2>
       <form action= "/urls/<%= shortURL %>?_bernieOverride=PUT" method= "POST">
         <label for= "longURL">Hey Update to a new URL... why not?</label>
-        <input id="longURL" type= "text" name= "longURL" placeholder= "omit http:// please" value="<%= urlDatabase[shortURL] %>">
+        <input id="longURL" type= "text" name= "longURL" placeholder= "omit http:// please" value="<%= urlDatabase[shortURL].longURL %>">
         <input type= "submit" value= "Update  URL!">
       </form>
 </body>

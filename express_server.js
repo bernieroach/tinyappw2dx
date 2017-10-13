@@ -88,7 +88,7 @@ const generateRandomString = function(){
 
 // DATA functions
 
-let getLongURLfromShort = function(shortURL, userList){
+let getURLfromShort = function(shortURL, userList){
   for (let userID in userList){
 
 // loop through all the registerd users
@@ -201,8 +201,14 @@ const digest = generateRandomString();
 
 const urlDatabase = { "charlierose" :
                       {
-                      "b2xVn2": "http://www.lighthouselabs.ca",
-                      "9sm5xK": "http://www.google.com"
+                      "b2xVn2": { longURL : "http://www.lighthouselabs.ca",
+                                  visits : 4,
+                                  uniqueVisits : 2
+                                },
+                      "9sm5xK": { longURL : "http://www.google.com",
+                                  visits : 1,
+                                  uniqueVisits : 1
+                                }
                       }
                     };
 
@@ -296,12 +302,13 @@ app.get("/urls/:id", (req, res) => {
 
 // GET behavior for tinyURL redirection - the purpose of this service
 app.get("/u/:shortURL", (req, res) => {
-
-  const longURL = getLongURLfromShort(req.params.shortURL,users);
+  console.log(req.headers);
+  const recordURL = getURLfromShort(req.params.shortURL,users);
   let templateVars = { user : users[req.session.user_id] }
   // if the longuRL is found redirect
-  if(longURL){
-    res.redirect(longURL);
+  if(recordURL){
+    recordURL.visits++;
+    res.redirect(recordURL.longURL);
   } else {
     // not found
     templateVars.errMessages = `**No Entry found for ${req.params.shortURL} . **`;
@@ -357,7 +364,6 @@ app.delete("/urls/:id/delete",(req,res) =>{
   }
 });
 
-
 // UPDATE database entry of tiny url by id
 app.put("/urls/:id",(req,res) =>{
 
@@ -391,7 +397,10 @@ app.post("/urls", (req, res) => {
  // generate a short URL
    const shortURL = generateRandomString();
 // default tiny to point to itself
-   urlDatabase[req.session.user_id][shortURL]= shortURL;
+   urlDatabase[req.session.user_id][shortURL]= { longURL : shortURL,
+                                                 visits : 0,
+                                                 uniqueVisits : 0
+                                                };
     // go tiny url page to update longURL
     res.redirect(`/urls/${shortURL}`);
   }
