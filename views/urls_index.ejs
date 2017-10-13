@@ -14,8 +14,9 @@
 
             <td><li><%= id %>: --></td>
             <td><a href="<%= urls[id] %>"><%= urls[id] %> --></a></td>
-            <td><a href="/urls/<%= id %>"> Edit entry </a></td>
-              <!-- add a delete button for each short URL -->
+              <td><form method="GET" action="/urls/<%= id %>">
+                <input type="submit" value="EDIT">
+              </form></td>
              <td><form method="POST" action="/urls/<%= id %>/delete">
                 <input type="submit" value="Delete">
               </form></td>
@@ -25,9 +26,10 @@
 
       </ul>
   </table>
-    <!-- Add your EJS code here -->
     <p>
-    <a href="/urls/new">Add a URL to tinfy!</a>
+    <form action="/urls" method="POST">
+      <input type="submit" value="Create a Tiny URL">
+    </form>
   </p>
 </body>
 </html>

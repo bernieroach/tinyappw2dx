@@ -51,7 +51,7 @@
 //             }
 
 
-// require statements
+///////// require statements //////////
 
 let express = require('express');
 let app = express();
@@ -60,12 +60,8 @@ let bodyParser = require('body-parser');
 let cookieParser = require('cookie-parser');
 let cookieSession = require('cookie-session');
 let bcrypt = require('bcrypt');
-const saltRounds = 10;
-const salt = bcrypt.genSaltSync(saltRounds);
 
-
-
-
+//////// function declarations ///////////
 
 const generateRandomString = function(){
   // list of valid characters the random sequence can be composed of a-z + A-Z + 0-9 order doesn't matter
@@ -187,10 +183,12 @@ let getUserByID = function(userID, userList){
 }
 
 
-//
-// Global data declarations:
+/////////// Global data declarations: /////////////
 
+const saltRounds = 10;
+const salt = bcrypt.genSaltSync(saltRounds);
 const digest = generateRandomString();
+
 const urlDatabase = { "charlierose" :
                       {
                       "b2xVn2": "http://www.lighthouselabs.ca",
@@ -221,6 +219,8 @@ const users = {
   }
 }
 
+
+//////// express server level functions ///////////
 
 app.use(bodyParser.urlencoded({extended: true}));
 
@@ -331,8 +331,6 @@ app.get("/login",(req,res)=>{
 
 app.get("/logout", (req, res) => {
 
-  // login logic.
-  // update the cookie and then enter the index page
 req.session.user_id = "";
   res.redirect("/login");
 
@@ -340,47 +338,66 @@ req.session.user_id = "";
 
 // delete database entry of tiny url by id
 app.post("/urls/:id/delete",(req,res) =>{
+  let templateVars = { user : users[req.session.user_id] };
+ if(!req.session.user_id){
+    templateVars.errMessages = "**You are not logged in. Please log in**";
+    res.render("error_message",templateVars);
+  } else if (!urlDatabase[req.session.user_id][req.params.id]){
+    templateVars.errMessages = `**You do not own tinyURL ${req.params.id} ACTION CANCELLED **`;
+    res.render("error_message",templateVars);
+  }else {
   // this is where we delete the entry in the database
-  delete urlDatabase[req.session.user_id][req.params.id];
-res.redirect("/urls");
-//  res.send(`delete ${req.params.id}...`);
+    delete urlDatabase[req.session.user_id][req.params.id];
+    res.redirect("/urls");
+  }
 });
 
-// delete database entry of tiny url by id
-app.post("/urls/:id/update",(req,res) =>{
-  // this is where we delete the entry in the database
-  urlDatabase[req.session.user_id][req.params.id] = `http://${req.body.longURL}`;
-// go back to main
-res.redirect("/urls")
-//  res.send(`delete ${req.params.id}...`);
+// UPDATE database entry of tiny url by id
+app.post("/urls/:id",(req,res) =>{
+  let templateVars = { user : users[req.session.user_id] };
+
+ if(!req.session.user_id){
+    templateVars.errMessages = "**You are not logged in. Please log in**";
+    res.render("error_message",templateVars);
+  } else if (!urlDatabase[req.session.user_id][req.params.id]){
+    templateVars.errMessages = `**You do not own tinyURL ${req.params.id} ACTION CANCELLED **`;
+    res.render("error_message",templateVars);
+  } else {
+    urlDatabase[req.session.user_id][req.params.id] = `http://${req.body.longURL}`;
+    res.redirect("/urls")
+  }
 });
 
 app.post("/urls", (req, res) => {
+  let templateVars = { shortURL: req.params.id,
+                       urlDatabase : urlDatabase[req.session.user_id],
+                       user : users[req.session.user_id] };
 
+ if(!req.session.user_id){
+    templateVars.errMessages = "**You are not logged in. Please log in**";
+    res.render("error_message",templateVars);
+  } else {
   // console.log(req.body);  // debug statement to see POST parameters
  // generate a short URL
    const shortURL = generateRandomString();
 
   // short URL will be the key for the long URL
-    urlDatabase[req.session.user_id][shortURL]= `http://${req.body.longURL}`;
-    // go back to main
-    res.redirect("/urls");
+  //  urlDatabase[req.session.user_id][shortURL]= `http://${req.body.longURL}`;
+   urlDatabase[req.session.user_id][shortURL]= shortURL;
+    // go tiny url page
+    res.redirect(`/urls/${shortURL}`);
+  }
+
 });
 
 app.post("/login", (req, res) => {
-  // login logic.
-  // verifythe login
-  // check for user with email address
-  // check the password is correct
+
   let loginResult = userLogin(req.body.email, req.body.password, users);
 
   if (loginResult.OK == true){
 // OK
-
-  // update the cookie and then enter the index page
   req.session.user_id = loginResult.user.id;
 
-  //  will be email.
   res.redirect("/urls");
   } else {
 // return error
@@ -392,22 +409,14 @@ app.post("/login", (req, res) => {
 
 app.post("/logout", (req, res) => {
 
-  // login logic.
-  // update the cookie and then enter the index page
-req.session.user_id = "";
-
-//  console.log("logout after", res.session.user_id);
+  req.session.user_id = "";
+// this commented out part is the spec, but I don't like it.
+//  res.redirect("/urls");
   res.redirect("/login");
-
 });
 
 app.post("/register",(req,res)=>{
   // register the user with email and password.
-
-
-  // error handling
-// hash the password
-
 
   let userVerifyResult = verifyRegEmailPassword(req.body.email, req.body.password, users);
   if (userVerifyResult.OK == true){
@@ -420,7 +429,9 @@ app.post("/register",(req,res)=>{
                    }
 
   urlDatabase[randID] = {};
-  res.redirect("/login");
+  req.session.user_id = randID;
+
+  res.redirect("/urls");
   } else {
     res.status(userVerifyResult.status).send(userVerifyResult.messages);
   }

@@ -10,16 +10,10 @@
         <h2>
               <%= urlDatabase[shortURL] %>
       </h2>
-      <!-- update form for the shortURL to point to a new long URL -->
-      <form action= "/urls/<%= shortURL %>/update" method= "POST">
+      <form action= "/urls/<%= shortURL %>" method= "POST">
         <label for= "longURL">Hey Update to a new URL... why not?</label>
         <input id="longURL" type= "text" name= "longURL" placeholder= "omit http:// please">
-        <input type= "submit" value= "Update to new URL!">
+        <input type= "submit" value= "Update  URL!">
       </form>
-
-
-    <!-- Add your EJS code here
-    <a href="/urls/new">Add a URL to tinfy!</a>
-    -->
 </body>
 </html>
