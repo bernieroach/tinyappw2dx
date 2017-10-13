@@ -21,7 +21,7 @@ email : charlierose@example.com
 password : conversation
 
 Here's the login screen
-[TinyApp Login Screen - where it all starts](./docs/TinyAppLogin.png)
+![TinyApp Login Screen - where it all starts](./docs/TinyAppLogin.png)
 
 !["screenshot description"](#)
 !["screenshot description"](#)
