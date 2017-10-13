@@ -12,7 +12,7 @@
       </h2>
       <form action= "/urls/<%= shortURL %>" method= "POST">
         <label for= "longURL">Hey Update to a new URL... why not?</label>
-        <input id="longURL" type= "text" name= "longURL" placeholder= "omit http:// please">
+        <input id="longURL" type= "text" name= "longURL" placeholder= "omit http:// please" value="<%= urlDatabase[shortURL] %>">
         <input type= "submit" value= "Update  URL!">
       </form>
 </body>
