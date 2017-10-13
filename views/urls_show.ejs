@@ -10,7 +10,7 @@
         <h2>
               <%= urlDatabase[shortURL] %>
       </h2>
-      <form action= "/urls/<%= shortURL %>" method= "POST">
+      <form action= "/urls/<%= shortURL %>?_bernieOverride=PUT" method= "POST">
         <label for= "longURL">Hey Update to a new URL... why not?</label>
         <input id="longURL" type= "text" name= "longURL" placeholder= "omit http:// please" value="<%= urlDatabase[shortURL] %>">
         <input type= "submit" value= "Update  URL!">
