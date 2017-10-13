@@ -78,6 +78,9 @@ const generateRandomString = function(){
   return(randomString);
 }
 
+
+// DATA functions
+
 let getLongURLfromShort = function(shortURL, userList){
   for (let userID in userList){
 
@@ -228,113 +231,112 @@ app.use(cookieSession({name : 'session',
                        keys : [digest]}));
 app.set('view engine', 'ejs')
 
+
+// root behavior for GET
 app.get("/",(req,res) =>{
 
-  templateVars = { user : users[req.session.user_id] }
+  let templateVars = { user : users[req.session.user_id] };
+  // not logged on
   if(!req.session.user_id){
     res.render("login",templateVars);
   } else {
+  // logged on, go to user urls
     templateVars.urls = urlDatabase[req.session.user_id];
     res.redirect("/urls");
   }
 });
 
-
+// /urls behavior for GET
 app.get("/urls",(req,res)=>{
+// get list of urls for a user
 
-  let templateVars = {
-                      user :    users[req.session.user_id]
-                      };
+  let templateVars = { user : users[req.session.user_id] };
+  // not logged on
   if(!req.session.user_id){
     templateVars.errMessages = "**You are not logged in. Please log in**";
     res.render("error_message",templateVars);
   } else {
+    // get urls for user
     templateVars.urls = urlDatabase[req.session.user_id];
     res.render("urls_index", templateVars);
   }
 });
 
-app.get("/urls/new",(req,res)=>{
+// this no longer is used remove when sure
+// app.get("/urls/new",(req,res)=>{
 
-  let templateVars = { user :    users[req.session.user_id] }
+//   let templateVars = { user :    users[req.session.user_id] }
 
-  if(req.session.user_id){
-    res.render("urls_new", templateVars);
-  } else {
+//   if(req.session.user_id){
+//     res.render("urls_new", templateVars);
+//   } else {
 
-    res.redirect("/login");
-  }
-});
+//     res.redirect("/login");
+//   }
+// });
 
+// GET behavior for specific url for specific user
 app.get("/urls/:id", (req, res) => {
   let templateVars = { shortURL: req.params.id,
                        urlDatabase : urlDatabase[req.session.user_id],
                        user : users[req.session.user_id] };
-
+// not logged in
  if(!req.session.user_id){
     templateVars.errMessages = "**You are not logged in. Please log in**";
     res.render("error_message",templateVars);
     } else if(urlDatabase[req.session.user_id][req.params.id]){
-
+  // the url is the user's - show it
   res.render("urls_show", templateVars);
   } else {
-    // if user is not logged in:
+    // the url is not under the control of the user
     templateVars.errMessages = `**You are not the owner of tinyURL ${req.params.id}. **`;
     res.render("error_message",templateVars);
   }
 });
 
+// GET behavior for tinyURL redirection - the purpose of this service
 app.get("/u/:shortURL", (req, res) => {
 
   const longURL = getLongURLfromShort(req.params.shortURL,users);
   let templateVars = { user : users[req.session.user_id] }
+  // if the longuRL is found redirect
   if(longURL){
     res.redirect(longURL);
   } else {
+    // not found
     templateVars.errMessages = `**No Entry found for ${req.params.shortURL} . **`;
     res.render("error_message",templateVars);
-    // not found
   }
 });
 
+// GET behavior for registration
 app.get("/register",(req,res)=>{
-// need this or header explodes
+
   let templateVars = { user : users[req.session.user_id] }
 
+  // already logged in, go to urls for user
   if(req.session.user_id){
     res.redirect("/urls");
   } else {
+  // register
     res.render("register", templateVars);
   }
 });
 
-// test to be removed
-app.get("/users",(req,res)=>{
-  let templateVars = { users : users,
-                       user : users[req.session.user_id] };
-  res.render("users", templateVars);
-});
-
-
+// GET behavior for login
 app.get("/login",(req,res)=>{
-// what to do if already logged in?
 
   templateVars = { user : users[req.session.user_id] }
+ // not logged in
   if(!req.session.user_id){
     res.clearCookie("user_id");
     res.render("login", templateVars);
   } else {
+  // logged in, go to user urls
     res.redirect("/urls");
   }
-
 });
 
-app.get("/logout", (req, res) => {
-
-req.session.user_id = "";
-  res.redirect("/login");
-
-});
 
 // delete database entry of tiny url by id
 app.post("/urls/:id/delete",(req,res) =>{
