@@ -23,6 +23,41 @@ password : conversation
 Here's the login screen
 ![TinyApp Login Screen - where it all starts](./docs/TinyAppLogin.png)
 
+The user is then brought to the list of URLs under their management
+![Charlie Rose short URLs - he's connected](./docs/TinyAppURLS.png)
+
+For each URL the redirect can be updated to point to a different URL or Deleted altogether
+![Charlie Rose like lighthouse labs](./docs/TinyAppURLLine.png)
+
+Update
+
+![Charlie Rose like lighthouse labs](./docs/TinyAppURLLineEdit.png)
+
+![But not as much as thighbonebucket](./docs/TinyAppURLLineUpdate.png)
+
+Delete
+
+![Hi Google!](./docs/TinyAppURLLineDelete1.png)
+
+![Bye Google!](./docs/TinyAppURLLineDelete2.png)
+
+Create
+
+![Create](./docs/TinyAppURLCreate.png)
+
+![Create](./docs/TinyAppURLCreate2.png)
+
+![Create](./docs/TinyAppURLCreate3.png)
+
+
+Registration is simple and fun
+
+![Create](./docs/TinyAppURLRegister.png)
+
+
+
+
+
 !["screenshot description"](#)
 !["screenshot description"](#)
 
