@@ -359,7 +359,8 @@ app.delete("/urls/:id/delete",(req,res) =>{
 
 
 // UPDATE database entry of tiny url by id
-app.post("/urls/:id",(req,res) =>{
+app.put("/urls/:id",(req,res) =>{
+
   let templateVars = { user : users[req.session.user_id] };
 // not logged on
  if(!req.session.user_id){
