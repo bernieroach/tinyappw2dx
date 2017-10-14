@@ -15,7 +15,7 @@
             <td><li><%= id %>: --></td>
             <td><a href="<%= urls[id].longURL %>"><%= urls[id].longURL %> --></a></td>
             <td><p> Visits: <%= urls[id].visits %> </p></td>
-            <td><p> Unique Visits: <%= urls[id].uniqueVisits %> </p></td>
+            <td><p> Unique Visits: <%= Object.keys(urls[id].visitors).length %> </p></td>
               <td><form method="GET" action="/urls/<%= id %>">
                 <input type="submit" value="EDIT">
               </form></td>

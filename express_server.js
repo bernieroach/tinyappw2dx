@@ -203,11 +203,13 @@ const urlDatabase = { "charlierose" :
                       {
                       "b2xVn2": { longURL : "http://www.lighthouselabs.ca",
                                   visits : 4,
-                                  uniqueVisits : 2
+                                  visitors : {  "visitor1" : ["today","last week", "last year"],
+                                                "visitor2" : ["first time"]
+                                             }
                                 },
                       "9sm5xK": { longURL : "http://www.google.com",
                                   visits : 1,
-                                  uniqueVisits : 1
+                                  visitors : {}
                                 }
                       }
                     };
@@ -302,12 +304,24 @@ app.get("/urls/:id", (req, res) => {
 
 // GET behavior for tinyURL redirection - the purpose of this service
 app.get("/u/:shortURL", (req, res) => {
-  console.log(req.headers);
   const recordURL = getURLfromShort(req.params.shortURL,users);
   let templateVars = { user : users[req.session.user_id] }
   // if the longuRL is found redirect
   if(recordURL){
     recordURL.visits++;
+    // to see distinct users:
+    // read the cookie "uniqueTracker"
+    //  add this id as a property of the unique visitors object of the url databse and set visit to 1.
+    // if it does exist then update the count count of this unique user in the url urlDatabase
+// if it does not exist, create a uniqueTracker with a value of some randomnumber
+    if(!req.session.trackerID){
+      req.session.trackerID = generateRandomString();
+      recordURL.visitors[req.session.trackerID] = [];
+
+    }
+// add or update the visitor list
+    recordURL.visitors[req.session.trackerID].push(Date(Date.now()).toString());
+
     res.redirect(recordURL.longURL);
   } else {
     // not found
@@ -399,7 +413,7 @@ app.post("/urls", (req, res) => {
 // default tiny to point to itself
    urlDatabase[req.session.user_id][shortURL]= { longURL : shortURL,
                                                  visits : 0,
-                                                 uniqueVisits : 0
+                                                 visitors : {}
                                                 };
     // go tiny url page to update longURL
     res.redirect(`/urls/${shortURL}`);

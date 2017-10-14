@@ -10,6 +10,19 @@
         <h2>
               <%= urlDatabase[shortURL].longURL %>
       </h2>
+      <h3> Total visitors : <%= urlDatabase[shortURL].visits %> </h3>
+      <h3> Unique visitors : <%= Object.keys(urlDatabase[shortURL].visitors).length %> </h3>
+      <table>
+      <% for (let visitorID in urlDatabase[shortURL].visits) { %>
+      <%  let visitorHistory = urlDatabase[shortURL].visitors[visitorID]; %>
+      <%  visitorHistory.forEach(function(item){ %>
+      <tr>
+        <td> Visitor <%= visitorID %> </td>
+        <td> Timestamp <%= item %> </td>
+      </tr>
+        <% }) %>
+      <% }; %>
+      </table>
       <form action= "/urls/<%= shortURL %>?_bernieOverride=PUT" method= "POST">
         <label for= "longURL">Hey Update to a new URL... why not?</label>
         <input id="longURL" type= "text" name= "longURL" placeholder= "omit http:// please" value="<%= urlDatabase[shortURL].longURL %>">
