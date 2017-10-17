@@ -213,6 +213,7 @@ app.get("/urls",(req,res)=>{
   // not logged on
   if(!req.session.user_id){
     templateVars.errMessages = "**You are not logged in. Please log in**";
+    res.status(401);
     res.render("error_message",templateVars);
   } else {
 
@@ -233,6 +234,7 @@ app.get("/urls/:id", (req, res) => {
 // not logged in
  if(!req.session.user_id){
     templateVars.errMessages = "**You are not logged in. Please log in**";
+    res.status(401);
     res.render("error_message",templateVars);
     } else if(urlDatabase[req.session.user_id][req.params.id]){
   // the url is the user's - show it
@@ -240,6 +242,7 @@ app.get("/urls/:id", (req, res) => {
   } else {
     // the url is not under the control of the user
     templateVars.errMessages = `**You are not the owner of tinyURL ${req.params.id}. **`;
+    res.status(403);
     res.render("error_message",templateVars);
   }
 });
@@ -264,6 +267,7 @@ app.get("/u/:shortURL", (req, res) => {
   } else {
     // not found
     templateVars.errMessages = `**No Entry found for ${req.params.shortURL} . **`;
+    res.status(404);
     res.render("error_message",templateVars);
   }
 });
@@ -304,10 +308,12 @@ app.delete("/urls/:id/delete",(req,res) =>{
   // if not logged on
  if(!req.session.user_id){
     templateVars.errMessages = "**You are not logged in. Please log in**";
+    res.status(401);
     res.render("error_message",templateVars);
   // if user does not have control of url
   } else if (!urlDatabase[req.session.user_id][req.params.id]){
     templateVars.errMessages = `**You do not own tinyURL ${req.params.id} ACTION CANCELLED **`;
+    res.status(403);
     res.render("error_message",templateVars);
   }else {
   // this is where we delete the entry in the database
@@ -323,10 +329,12 @@ app.put("/urls/:id",(req,res) =>{
 // not logged on
  if(!req.session.user_id){
     templateVars.errMessages = "**You are not logged in. Please log in**";
+    res.status(401);
     res.render("error_message",templateVars);
   // user does not have control of the url
   } else if (!urlDatabase[req.session.user_id][req.params.id]){
     templateVars.errMessages = `**You do not own tinyURL ${req.params.id} ACTION CANCELLED **`;
+    res.status(403);
     res.render("error_message",templateVars);
   } else {
 
@@ -349,6 +357,7 @@ app.post("/urls", (req, res) => {
 // not logged on
  if(!req.session.user_id){
     templateVars.errMessages = "**You are not logged in. Please log in**";
+    res.status(401);
     res.render("error_message",templateVars);
   } else {
  // generate a short URL
@@ -366,7 +375,7 @@ app.post("/urls", (req, res) => {
 
 // POST behavior for login
 app.post("/login", (req, res) => {
-
+let templateVars = {user : req.session.user_id};
 // check if the login was with valid data
   let loginResult = userLogin(req.body.email, req.body.password, users);
 
@@ -377,7 +386,11 @@ app.post("/login", (req, res) => {
   res.redirect("/urls");
   } else {
 // return error
-   res.status(loginResult.status).send(loginResult.messages)
+//   res.status(loginResult.status).send(loginResult.messages)
+    res.status(loginResult.status);
+    templateVars.errMessages = loginResult.messages;
+    res.status(403);
+    res.render("error_message",templateVars);
   }
 });
 
@@ -392,24 +405,30 @@ app.post("/logout", (req, res) => {
 
 //POST behavior for
 app.post("/register",(req,res)=>{
+
   // register the user with email and password.
   // check the registration inputs
+  let templateVars = {user : req.session.user_id};
   let userVerifyResult = verifyRegEmailPassword(req.body.email, req.body.password, users);
+
   if (userVerifyResult.OK == true){
-  let randID = generateRandomString();
+   let randID = generateRandomString();
   // create user record
-  users[randID] = { id : randID,
+    users[randID] = { id : randID,
                     email : req.body.email,
                     password : bcrypt.hashSync(req.body.password, saltRounds)
                    }
 // url database for user init to empty (but not undefined)
-  urlDatabase[randID] = {};
-  req.session.user_id = randID;
+    urlDatabase[randID] = {};
+    req.session.user_id = randID;
 // show the urls for the user
-  res.redirect("/urls");
+    res.redirect("/urls");
   } else {
     // there was a data validity issue during registration
-    res.status(userVerifyResult.status).send(userVerifyResult.messages);
+    res.status(userVerifyResult.status);
+    templateVars.errMessages = userVerifyResult.messages;
+    res.render("error_message",templateVars);
+
   }
 })
 
