@@ -1,59 +1,6 @@
 // tinyURL app for LHL week 2
 // Oct 10, 2017 Montreal QC
 // Bernard Roach
-//
-// Global data declarations:
-// put this in a module with tiny url db
-// getUserByID
-// verifyRegEmailPassword
-// getUSerByEmail
-// getLongURLfromShort
-// userRegister (not written)
-// userUpdate/Create (not written)
-// userDelete (not written)
-// urlUPDATE/CREATE (not written)
-// urlDelete (not written)
-
-// more app functions are:
-// userLogin
-// userLogOut (not written)
-
-
-
-// global function declarations
-// try to modularize later when it is working.
-// idea is data stuff in data (get/delete/update etc)
-// idea is helper functions in a separate moduel (like generate random)
-// helper functions might be called via the db module
-//(not visible to the app maybe? it should not be called from the app directly in our example I think)
-// idea that the 'functional' functions - like logon, register can stay with the app as it is at app level
-// so if db changes or whatever, the app should not have to be changed much, unless we want the app to
-// acutally function differently
-
-
-
-// multi language texts object?
-// // language selection (possible cookie to store)
-// try if time
-//  appTexts = { userBlank : {
-//                             { lang : "EN",
-//                               text : "cannot leave user name blank"\
-//                             },
-//                             { lang : "FR",
-//                               text : "veuillez entrer un nom utilisateur"
-//                             }
-//               },
-//               passwordBlank : {
-//                             { lang : "EN",
-//                               text : "cannot leave password blank"\
-//                             },
-//                             { lang : "FR",
-//                               text : "veuillez entrer un mot de passe"
-//                             }
-
-//               }
-//             }
-
 
 ///////// require statements //////////
 let methodOverride = require('method-override');
@@ -64,8 +11,6 @@ let bodyParser = require('body-parser');
 let cookieParser = require('cookie-parser');
 let cookieSession = require('cookie-session');
 let bcrypt = require('bcrypt');
-
-
 
 
 //////// function declarations ///////////
@@ -91,9 +36,6 @@ const generateRandomString = function(){
 let getURLfromShort = function(shortURL, userList){
   for (let userID in userList){
 
-// loop through all the registerd users
-// let longURL = urlDatabase[shortURL]
-// hash the user db tiny
   if (urlDatabase[userID] && urlDatabase[userID][shortURL]) {
      return urlDatabase[userID][shortURL];
   }
@@ -189,9 +131,7 @@ let getUserByID = function(userID, userList){
   } else {
     return {};
   }
-
 }
-
 
 /////////// Global data declarations: /////////////
 
@@ -237,7 +177,6 @@ const users = {
   }
 }
 
-
 //////// express server level functions ///////////
 ////// set up the server middleware, view engine //////
 
@@ -276,18 +215,21 @@ app.get("/urls",(req,res)=>{
     templateVars.errMessages = "**You are not logged in. Please log in**";
     res.render("error_message",templateVars);
   } else {
+
+
     // get urls for user
     templateVars.urls = urlDatabase[req.session.user_id];
+
     res.render("urls_index", templateVars);
   }
 });
-
 
 // GET behavior for specific url for specific user
 app.get("/urls/:id", (req, res) => {
   let templateVars = { shortURL: req.params.id,
                        urlDatabase : urlDatabase[req.session.user_id],
                        user : users[req.session.user_id] };
+
 // not logged in
  if(!req.session.user_id){
     templateVars.errMessages = "**You are not logged in. Please log in**";
@@ -309,10 +251,6 @@ app.get("/u/:shortURL", (req, res) => {
   // if the longuRL is found redirect
   if(recordURL){
     recordURL.visits++;
-    // to see distinct users:
-    // read the cookie "uniqueTracker"
-    //  add this id as a property of the unique visitors object of the url databse and set visit to 1.
-    // if it does exist then update the count count of this unique user in the url urlDatabase
 // if it does not exist, create a uniqueTracker with a value of some randomnumber
     if(!req.session.trackerID){
       req.session.trackerID = generateRandomString();
@@ -391,13 +329,18 @@ app.put("/urls/:id",(req,res) =>{
     templateVars.errMessages = `**You do not own tinyURL ${req.params.id} ACTION CANCELLED **`;
     res.render("error_message",templateVars);
   } else {
+
+    console.log(urlDatabase[req.session.user_id][req.params.id]);
   // update the long URL and got ot the list of urls for the user
-    urlDatabase[req.session.user_id][req.params.id] = `http://${req.body.longURL}`;
+  // scrub the http: prefix and add later.
+    req.body.longURL = req.body.longURL.replace("http://","");
+    req.body.longURL = req.body.longURL.replace("https://","");
+    urlDatabase[req.session.user_id][req.params.id].longURL = `http://${req.body.longURL}`;
     res.redirect("/urls")
   }
 });
 
-// formerly /urls/new but not to spec
+
 // create new tiny url entry
 app.post("/urls", (req, res) => {
   let templateVars = { shortURL: req.params.id,
